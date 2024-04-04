@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import CardSetupForm from "./CardSetupForm";
 
 const RegistrationForm = (props) => {
-  const { selected, details } = props;
+  const { selected, details, sessions } = props;
   const [error, setError] = useState(null);
   const [processing, setProcessing] = useState(false);
   const [learnerEmail, setLearnerEmail] = useState("");
@@ -13,23 +13,77 @@ const RegistrationForm = (props) => {
   const [customerId, setCustomerId] = useState(null);
   const [clientSecret, setClientSecret] = useState(null);
   const stripePromise = useRef(null);
-  let appearance = null;
-  // TODO: Integrate Stripe
+
+  useEffect(() => {
+    setProcessing(true)
+    fetch("http://localhost:4242/config")
+        .then((response) => response.json())
+        .then((data) => {
+          stripePromise.current = loadStripe(data.key);
+        })
+        .finally(() => {
+          setProcessing(false)
+        })
+  }, []);
 
   const handleChange = async(value, field) => {
-    //TODO: Handle the checkout event
+    switch (field) {
+        case "learnerName":
+            setLearnerName(value);
+            break;
+        case "learnerEmail":
+            setLearnerEmail(value);
+            break;
+        default:
+            break;
+    }
   }
 
   const handleClickForPaymentElement = async () => {
-    // TODO: Setup and Load Payment Element
-  };
+    setProcessing(true);
+    setExistingCustomer(null);
 
+    try {
+      const {clientSecret, customer, isExistingCustomer} = await fetch("http://localhost:4242/lessons", {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+        body: JSON.stringify({
+          email: learnerEmail,
+          name: learnerName,
+          firstLesson: sessions[selected].title,
+        }),
+      }).then((response) => response.json());
+
+      if (isExistingCustomer) {
+        setExistingCustomer({
+            customerId: customer.id,
+            customerEmail: customer.email,
+        })
+        setProcessing(false);
+        return;
+      }
+
+      setCustomerId(customer.id);
+      setClientSecret(clientSecret);
+    } catch (error) {
+      setError(error.message)
+    } finally {
+      setProcessing(false);
+    }
+  };
 
   let body = null;
   if (selected === -1) return body;
   if (clientSecret) {
     body = (
-      <Elements stripe={stripePromise.current} options={{appearance, clientSecret}}>
+      <Elements stripe={stripePromise.current} options={{
+        clientSecret: clientSecret,
+        appearance: {
+          theme: 'stripe',
+        },
+      }}>
       <CardSetupForm
         selected={selected}
         mode="setup"
@@ -37,6 +91,7 @@ const RegistrationForm = (props) => {
         learnerEmail={learnerEmail}
         learnerName={learnerName}
         customerId={customerId}
+        clientSecret={clientSecret}
       />
       </Elements>
     )
@@ -58,6 +113,7 @@ const RegistrationForm = (props) => {
             <input
               type="text"
               id="name"
+              required={true}
               value={learnerName}
               placeholder="Name"
               autoComplete="cardholder"
@@ -70,6 +126,7 @@ const RegistrationForm = (props) => {
             <input
               type="text"
               id="email"
+              required={true}
               value={learnerEmail}
               placeholder="Email"
               autoComplete="cardholder"
@@ -78,10 +135,15 @@ const RegistrationForm = (props) => {
           </div>
             <button
               id="checkout-btn"
+              className="submit"
               disabled={!learnerName || !learnerEmail || processing}
               onClick={handleClickForPaymentElement}
             >
-              <span id="button-text">Checkout</span>
+              {
+                processing ?
+                    <div className="spinner" id="spinner"></div> :
+                    <span id="button-text">Checkout</span>
+              }
             </button>
         </div>
         {existingCustomer && (

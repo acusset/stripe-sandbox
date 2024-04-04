@@ -1,22 +1,58 @@
 import {
-  PaymentElement, useElements, useStripe
+  PaymentElement,
+  useElements,
+  useStripe
 } from "@stripe/react-stripe-js";
-import React, { useState } from "react";
+import React, {useState } from "react";
 import SignupComplete from "./SignupComplete";
-  
+
   const CardSetupForm = (props) => {
-    const { selected, mode, details, customerId, learnerEmail, learnerName, onSuccessfulConfirmation } =
+    const { selected, mode, details, customerId, learnerEmail, learnerName, onSuccessfulConfirmation, clientSecret } =
       props;
     const [paymentSucceeded, setPaymentSucceeded] = useState(false);
     const [error, setError] = useState(null);
     const [processing, setProcessing] = useState(false);
     const [last4, setLast4] = useState("");
-    // TODO: Integrate Stripe
-  
+
+    const elements = useElements();
+    const stripe = useStripe();
+
     const handleClick = async (e) => {
-      // TODO: Integrate Stripe
+      e.preventDefault();
+      setProcessing(true);
+      setError(null);
+      setLast4('')
+      setPaymentSucceeded(false);
+
+      if (!stripe || !elements) {
+        setError('Stripe.js has not loaded yet. Try again in a few seconds.')
+        return;
+      }
+
+      const {setupIntent, error} = await stripe.confirmSetup({
+        elements,
+        confirmParams: {
+          return_url: window.location.href,
+          expand: ['payment_method'],
+        },
+        redirect: 'if_required',
+      });
+
+      if (error) {
+        setError(error.message);
+        setProcessing(false);
+        return;
+      }
+
+      if (setupIntent && setupIntent.status === 'succeeded') {
+        console.log(setupIntent);
+        setLast4('4242');
+        setPaymentSucceeded(true);
+      }
+
+      setProcessing(false);
     };
-  
+
     if (selected === -1) return null;
     if (paymentSucceeded) return (
       <div className={`lesson-form`}>
@@ -46,14 +82,25 @@ import SignupComplete from "./SignupComplete";
                     <span>{learnerName} ({learnerEmail})</span>
                   </div>
                   <div className="lesson-payment-element">
-                    {
-                      // TODO: Integrate Stripe
-                    }
+                    <form onSubmit={handleClick}>
+                      <PaymentElement options={{
+                        defaultValues: {
+                          billingDetails: {
+                            email: learnerEmail,
+                            name: learnerName,
+                          }
+                        }
+                      }} />
+                      <button id="submit" className="submit" type="submit" disabled={processing}>
+                        {processing ? <div className="spinner" id="spinner"></div> :
+                            <span id="button-text">Pay</span>}
+                      </button>
+                    </form>
                   </div>
                 </div>
               </div>
               {error && (
-                <div className="sr-field-error" id="card-errors" role="alert">
+                  <div className="sr-field-error" id="card-errors" role="alert">
                   <div className="card-error" role="alert">
                     {error}
                   </div>

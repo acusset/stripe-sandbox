@@ -59,7 +59,7 @@ app.get('/', (req, res) => {
 //        key: <STRIPE_PUBLISHABLE_KEY>
 //   }
 app.get("/config", (req, res) => {
-  // TODO: Integrate Stripe
+  res.status(200).send({key: process.env.STRIPE_PUBLISHABLE_KEY});
 });
 
 // Milestone 1: Signing up
@@ -75,7 +75,47 @@ app.get('/lessons', (req, res) => {
   }
 });
 
-// TODO: Integrate Stripe
+// Milestone 1: Signing up
+// Handles the lesson sign up form submission.
+app.post("/lessons", async (req, res) => {
+  const {email, name, firstLesson} = req.body;
+  let customer = null
+  let isExistingCustomer =  false;
+  let search = await stripe.customers.list({
+    email: email
+  });
+
+  if (search.data.length > 0) {
+    customer = search.data[0];
+    isExistingCustomer = true
+  } else {
+    customer = await stripe.customers.create({
+      name: name,
+      email: email,
+      metadata: {
+        "first_lesson": firstLesson,
+      }
+    })
+  }
+
+  const setupIntent = await stripe.setupIntents.create({
+    payment_method_types: ['card'],
+    customer: customer.id,
+    payment_method_data: {
+      type: 'card',
+      billing_details: {
+        name: name,
+        email: email,
+      },
+    },
+  });
+
+  return res.status(201).send({
+    clientSecret: setupIntent.client_secret,
+    isExistingCustomer: isExistingCustomer,
+    customer: customer,
+  });
+});
 
 // Milestone 2: '/schedule-lesson'
 // Authorize a payment for a lesson

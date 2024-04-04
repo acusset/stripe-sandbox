@@ -70,7 +70,7 @@ const Lessons = () => {
       {
         //Component to process user info for registration.
       }
-      <RegistrationForm selected={selected} details={details} />
+      <RegistrationForm selected={selected} details={details} sessions={sessions} />
       <div className="lesson-title" id="title">
         <h2>Guitar lessons</h2>
       </div>

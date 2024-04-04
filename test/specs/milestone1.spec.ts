@@ -394,5 +394,4 @@ test.describe('Validating saved card and customer', () => {
     expect(customerResponse.metadata.first_lesson).toContain(lessonDateMonth);
 
   });
-
 });
