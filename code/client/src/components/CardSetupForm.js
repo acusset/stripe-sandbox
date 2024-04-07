@@ -34,6 +34,12 @@ import SignupComplete from "./SignupComplete";
         confirmParams: {
           return_url: window.location.href,
           expand: ['payment_method'],
+          payment_method_data: {
+            billing_details: {
+                email: learnerEmail,
+                name: learnerName,
+            },
+          },
         },
         redirect: 'if_required',
       });
@@ -46,7 +52,7 @@ import SignupComplete from "./SignupComplete";
 
       if (setupIntent && setupIntent.status === 'succeeded') {
         console.log(setupIntent);
-        setLast4('4242');
+        setLast4(setupIntent.payment_method.card.last4);
         setPaymentSucceeded(true);
       }
 
