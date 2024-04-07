@@ -99,15 +99,7 @@ app.post("/lessons", async (req, res) => {
   }
 
   const setupIntent = await stripe.setupIntents.create({
-    payment_method_types: ['card'],
     customer: customer.id,
-    payment_method_data: {
-      type: 'card',
-      billing_details: {
-        name: name,
-        email: email,
-      },
-    },
   });
 
   return res.status(201).send({
