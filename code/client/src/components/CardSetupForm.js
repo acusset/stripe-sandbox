@@ -51,7 +51,6 @@ import SignupComplete from "./SignupComplete";
       }
 
       if (setupIntent && setupIntent.status === 'succeeded') {
-        console.log(setupIntent);
         setLast4(setupIntent.payment_method.card.last4);
         setPaymentSucceeded(true);
       }
