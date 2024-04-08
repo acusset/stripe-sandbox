@@ -155,10 +155,14 @@ app.post("/schedule-lesson", async (req, res) => {
 
     return res.status(201).send({payment: paymentIntent});
   } catch (error) {
-    return res.status(400).send({error: {code: error.code, message: error.message}});
+    return res.status(400).send({
+      error: {
+        code: error.code,
+        message: error.message
+      }
+    });
   }
 });
-
 
 // Milestone 2: '/complete-lesson-payment'
 // Capture a payment for a lesson.
@@ -186,7 +190,25 @@ app.post("/schedule-lesson", async (req, res) => {
 // }
 //
 app.post("/complete-lesson-payment", async (req, res) => {
-  // TODO: Integrate Stripe
+  const {payment_intent_id, amount} = req.body;
+  let options = undefined;
+
+  try {
+    if (amount) {
+      options = {amount_to_capture: amount}
+    }
+
+    let paymentIntent = stripe.paymentIntents.capture(payment_intent_id,  options);
+
+    return res.status(200).send({payment: paymentIntent});
+  } catch (error) {
+    return res.status(400).send({
+      error: {
+        code: error.code,
+        message: error.message
+      }
+    });
+  }
 });
 
 // Milestone 2: '/refund-lesson'

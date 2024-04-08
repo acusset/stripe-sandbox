@@ -1,3 +1,4 @@
+### Schedule a lesson
 POST localhost:3000/schedule-lesson
 Content-Type: application/json
 
@@ -5,4 +6,21 @@ Content-Type: application/json
     "customer_id": "cus_Psk0ffeHK5hgBV",
     "amount": 123,
     "description": "lesson"
+}
+
+### Complete a lesson
+POST localhost:3000/schedule-lesson
+Content-Type: application/json
+
+{
+  "payment_intent_id": "cus_Psk0ffeHK5hgBV"
+}
+
+### Complete a lesson with amount
+POST localhost:3000/complete-lesson-payment
+Content-Type: application/json
+
+{
+  "payment_intent_id": "pi_3P37gnHx6psTCyjy1zLIxRnz",
+  "amount": 100
 }
