@@ -148,6 +148,12 @@ app.post("/schedule-lesson", async (req, res) => {
       amount: amount,
       description: description,
       currency: 'usd',
+      confirm: true,
+      capture_method: "manual",
+      automatic_payment_methods: {
+        enabled: true,
+        allow_redirects: "never",
+      },
       metadata: {
         type: "lessons-payment",
       },
