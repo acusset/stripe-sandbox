@@ -24,3 +24,12 @@ Content-Type: application/json
   "payment_intent_id": "pi_3P37gnHx6psTCyjy1zLIxRnz",
   "amount": 100
 }
+
+### Refund a lesson with amount
+POST localhost:3000/complete-lesson-payment
+Content-Type: application/json
+
+{
+  "payment_intent_id": "pi_3P37gnHx6psTCyjy1zLIxRnz",
+  "amount": 100
+}

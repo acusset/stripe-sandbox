@@ -140,8 +140,6 @@ app.post("/lessons", async (req, res) => {
 app.post("/schedule-lesson", async (req, res) => {
   const {customer_id, amount, description} = req.body;
 
-  console.log(customer_id, amount, description);
-
   try {
     const paymentIntent = await stripe.paymentIntents.create({
       customer: customer_id,
@@ -240,7 +238,23 @@ app.post("/complete-lesson-payment", async (req, res) => {
 //      }
 //  }
 app.post("/refund-lesson", async (req, res) => {
-  // TODO: Integrate Stripe
+  const {payment_intent_id, amount} = req.body;
+
+  try {
+    let refund = stripe.refunds.create({
+      payment_intent: payment_intent_id,
+      amount: amount,
+    });
+
+    return res.status(201).send({refund: refund.id});
+  } catch (error) {
+    return res.status(400).send({
+      error: {
+        code: error.code,
+        message: error.message
+      }
+    });
+  }
 });
 
 // Milestone 3: Managing account info
