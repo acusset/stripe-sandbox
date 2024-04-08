@@ -249,7 +249,7 @@ app.post("/refund-lesson", async (req, res) => {
   const {payment_intent_id, amount} = req.body;
 
   try {
-    let refund = stripe.refunds.create({
+    let refund = await stripe.refunds.create({
       payment_intent: payment_intent_id,
       amount: amount,
     });
