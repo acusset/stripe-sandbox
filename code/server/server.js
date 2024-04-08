@@ -141,6 +141,8 @@ app.post("/schedule-lesson", async (req, res) => {
   const {customer_id, amount, description} = req.body;
 
   try {
+    const customerPaymentMethods = await stripe.customers.listPaymentMethods(customer_id);
+
     const paymentIntent = await stripe.paymentIntents.create({
       customer: customer_id,
       amount: amount,
@@ -149,6 +151,7 @@ app.post("/schedule-lesson", async (req, res) => {
       metadata: {
         type: "lessons-payment",
       },
+      payment_method: customerPaymentMethods.data[0].id,
     });
 
     return res.status(201).send({payment: paymentIntent});
