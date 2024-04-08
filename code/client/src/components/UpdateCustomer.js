@@ -39,7 +39,30 @@ const UpdateCustomer = ({
   }, []);
 
   const handleClick = async () => {
-    // TODO: Integrate Stripe
+    setProcessing(true);
+
+    const updateAccount = () => {
+      fetch(`http://localhost:4242/account-update`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          customer_id: customerId,
+          email: email,
+          name: name
+        })
+      })
+        .then(response => response.json())
+        .then(data => {
+          console.log(data);
+        })
+        .finally(() => {
+          setProcessing(false);
+        });
+    }
+
+    updateAccount();
   };
 
   return (

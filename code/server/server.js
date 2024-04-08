@@ -304,19 +304,17 @@ app.post("/update-payment-details/:customer_id", async (req, res) => {
   // TODO: Update the customer's payment details
 });
 
-// Handle account updates
+// Handle account update
 app.post("/account-update", async (req, res) => {
-  const {email, name} = req.body;
-  const {customer_id} = req.query;
+  const {customer_id, email, name} = req.body;
 
-  // TODO: Handle updates to any of the customer's account details
   try {
-    let customer = await stripe.customer.list({
-      email: email
+    let customers = await stripe.customers.list({
+      email: email,
     });
 
     // new email already belongs to another customer
-    if (customer.id !== customer_id) {
+    if (customers.data[0].id !== customer_id) {
       throw new Error("Email is taken"); // caught below
     }
 
@@ -325,9 +323,8 @@ app.post("/account-update", async (req, res) => {
       name: name
     });
 
-    return res.status(200).send({customer: customer});
+    return res.status(200).send({customer: customers.data.pop()});
   } catch (error) {
-    console.log(error)
     return res.status(400).send({
       error: {
         code: error.code ?? 400,
