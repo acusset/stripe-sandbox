@@ -42,13 +42,12 @@ const UpdateCustomer = ({
     setProcessing(true);
 
     const updateAccount = () => {
-      fetch(`http://localhost:4242/account-update`, {
+      fetch(`http://localhost:4242/account-update/${customerId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          customer_id: customerId,
           email: email,
           name: name
         })
@@ -58,7 +57,7 @@ const UpdateCustomer = ({
           if (data.error) {
             setError(data.error);
           }
-
+          onSuccessfulConfirmation(); // refresh the users details
           setStripeOptions({
             clientSecret: data.clientSecret,
             appearance: {

@@ -7,7 +7,7 @@ import React, {useState } from "react";
 import SignupComplete from "./SignupComplete";
 
   const CardSetupForm = (props) => {
-    const { selected, mode, details, customerId, learnerEmail, learnerName, onSuccessfulConfirmation, clientSecret } =
+    const { selected, mode, details, customerId, learnerEmail, learnerName, onSuccessfulConfirmation } =
       props;
     const [paymentSucceeded, setPaymentSucceeded] = useState(false);
     const [error, setError] = useState(null);
@@ -53,6 +53,20 @@ import SignupComplete from "./SignupComplete";
       if (setupIntent && setupIntent.status === 'succeeded') {
         setLast4(setupIntent.payment_method.card.last4);
         setPaymentSucceeded(true);
+
+        if (mode === 'update') {
+          await fetch(`http://localhost:4242/update-payment-details/${customerId}`, {
+            headers: {
+              "Content-Type": "application/json",
+            },
+            method: "POST",
+            body: {
+              payment_method: setupIntent.payment_method.id
+            }
+          })
+        }
+
+        onSuccessfulConfirmation();
       }
 
       setProcessing(false);
@@ -98,7 +112,7 @@ import SignupComplete from "./SignupComplete";
                       }} />
                       <button id="submit" className="submit" type="submit" disabled={processing}>
                         {processing ? <div className="spinner" id="spinner"></div> :
-                            <span id="button-text">Pay</span>}
+                            <span id="button-text">{mode === 'setup' ? "Pay" : "Update"}</span>}
                       </button>
                     </form>
                   </div>

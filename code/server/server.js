@@ -299,26 +299,48 @@ app.get("/payment-method/:customer_id", async (req, res) => {
   }
 });
 
-
+// TODO: Update the customer's payment details
 app.post("/update-payment-details/:customer_id", async (req, res) => {
-  // TODO: Update the customer's payment details
+  const {customer_id} = req.params;
+  const {payment_method} = req.body
+
+  try {
+    const customerPaymentMethods = await stripe.customers.listPaymentMethods(customer_id);
+
+    // Detach old payment methods
+    customerPaymentMethods.data.forEach(async (paymentMethod) => {
+      if (paymentMethod.id !== payment_method) {
+        await stripe.paymentMethods.detach(paymentMethod.id);
+      }
+    });
+
+  } catch (error) {
+    return res.status(400).send({
+      error: {
+        code: error.code,
+        message: error.message
+      }
+    });
+  }
 });
 
 // Handle account update
-app.post("/account-update", async (req, res) => {
-  const {customer_id, email, name} = req.body;
+// TODO: Handle updates to any of the customer's account details
+app.post("/account-update/:customer_id", async (req, res) => {
+  const {email, name} = req.body;
+  const {customer_id} = req.params;
   let customer = null;
 
   try {
-    let customers = await stripe.customers.list({
+    let existingCustomers = await stripe.customers.list({
       email: email,
     });
 
-    // new email already belongs to another customer
-    if (customers.data[0].id !== customer_id) {
+    if (existingCustomers.data.length > 0 && existingCustomers.data[0].id !== customer_id) {
       throw new Error("Email is taken"); // caught below
     }
 
+    // Update customer details
     customer = customers.data[0];
     if (customer.email !== email || customer.name !== name) {
       customer = await stripe.customers.update(customer_id, {
@@ -332,13 +354,12 @@ app.post("/account-update", async (req, res) => {
     });
 
     return res.status(200).send({
-      customer: customer,
       clientSecret: setupIntent.client_secret
     });
   } catch (error) {
     return res.status(400).send({
       error: {
-        code: error.code ?? 400,
+        code: error.code,
         message: error.message
       }
     });
