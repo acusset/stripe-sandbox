@@ -283,10 +283,14 @@ app.get("/payment-method/:customer_id", async (req, res) => {
   const {customer_id} = req.params;
 
   try {
+    const customer = await stripe.customers.retrieve(customer_id, {
+      expand: ['invoice_settings.default_payment_method'],
+    });
 
-    const paymentMethods = await stripe.customers.listPaymentMethods(customer_id);
-
-    return res.status(200).send({paymentMethods: paymentMethods.data});
+    return res.status(200).send({
+      customer: customer,
+      card: customer.invoice_settings.default_payment_method.card
+    });
   } catch (error) {
     return res.status(400).send({
       error: {
