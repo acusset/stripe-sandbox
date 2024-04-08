@@ -1,0 +1,8 @@
+POST localhost:3000/schedule-lesson
+Content-Type: application/json
+
+{
+    "customer_id": "cus_Psk0ffeHK5hgBV",
+    "amount": 123,
+    "description": "lesson"
+}

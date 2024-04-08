@@ -138,7 +138,25 @@ app.post("/lessons", async (req, res) => {
 //    payment_intent_id: if a payment intent was created but not successfully authorized
 // }
 app.post("/schedule-lesson", async (req, res) => {
-  // TODO: Integrate Stripe
+  const {customer_id, amount, description} = req.body;
+
+  console.log(customer_id, amount, description);
+
+  try {
+    const paymentIntent = await stripe.paymentIntents.create({
+      customer: customer_id,
+      amount: amount,
+      description: description,
+      currency: 'usd',
+      metadata: {
+        type: "lessons-payment",
+      },
+    });
+
+    return res.status(201).send({payment: paymentIntent});
+  } catch (error) {
+    return res.status(400).send({error: {code: error.code, message: error.message}});
+  }
 });
 
 
