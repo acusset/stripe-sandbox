@@ -55,7 +55,18 @@ const UpdateCustomer = ({
       })
         .then(response => response.json())
         .then(data => {
-          console.log(data);
+          if (data.error) {
+            setError(data.error);
+          }
+
+          setStripeOptions({
+            clientSecret: data.clientSecret,
+            appearance: {
+              theme: 'stripe',
+            }
+          })
+
+          setpaymentElementLoaded(true);
         })
         .finally(() => {
           setProcessing(false);

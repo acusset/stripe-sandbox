@@ -307,6 +307,7 @@ app.post("/update-payment-details/:customer_id", async (req, res) => {
 // Handle account update
 app.post("/account-update", async (req, res) => {
   const {customer_id, email, name} = req.body;
+  let customer = null;
 
   try {
     let customers = await stripe.customers.list({
@@ -318,12 +319,22 @@ app.post("/account-update", async (req, res) => {
       throw new Error("Email is taken"); // caught below
     }
 
-    customer = await stripe.customers.update(customer_id, {
-      email: email,
-      name: name
+    customer = customers.data[0];
+    if (customer.email !== email || customer.name !== name) {
+      customer = await stripe.customers.update(customer_id, {
+        email: email,
+        name: name
+      });
+    }
+
+    const setupIntent = await stripe.setupIntents.create({
+      customer: customer.id,
     });
 
-    return res.status(200).send({customer: customers.data.pop()});
+    return res.status(200).send({
+      customer: customer,
+      clientSecret: setupIntent.client_secret
+    });
   } catch (error) {
     return res.status(400).send({
       error: {
