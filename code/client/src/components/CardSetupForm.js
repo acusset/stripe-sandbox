@@ -60,9 +60,9 @@ import SignupComplete from "./SignupComplete";
               "Content-Type": "application/json",
             },
             method: "POST",
-            body: {
+            body: JSON.stringify({
               payment_method: setupIntent.payment_method.id
-            }
+            })
           })
         }
 

@@ -341,7 +341,7 @@ app.post("/account-update/:customer_id", async (req, res) => {
     }
 
     // Update customer details
-    customer = customers.data[0];
+    customer = existingCustomers.data[0];
     if (customer.email !== email || customer.name !== name) {
       customer = await stripe.customers.update(customer_id, {
         email: email,

@@ -61,7 +61,7 @@ const UpdateCustomer = ({
           setStripeOptions({
             clientSecret: data.clientSecret,
             appearance: {
-              theme: 'stripe',
+              theme: 'dark',
             }
           })
 
