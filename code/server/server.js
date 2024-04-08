@@ -412,7 +412,6 @@ app.post("/delete-account/:customer_id", async (req, res) => {
       }
     }
 
-    // If there are no uncaptured payment intents, delete the customer
     await stripe.customers.del(customer_id);
 
     return res.status(200).send({deleted: true});
