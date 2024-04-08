@@ -151,12 +151,7 @@ app.post("/schedule-lesson", async (req, res) => {
       metadata: {
         type: "lessons-payment",
       },
-      confirm: true,
       payment_method: customerPaymentMethods.data.pop().id,
-      automatic_payment_methods: {
-        enabled: true, // Enable automatic payment methods
-        allow_redirects: "never", // Don't allow redirects
-      },
     });
 
     return res.status(201).send({payment: paymentIntent});
