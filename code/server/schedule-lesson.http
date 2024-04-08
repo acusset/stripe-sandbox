@@ -21,7 +21,7 @@ POST localhost:3000/complete-lesson-payment
 Content-Type: application/json
 
 {
-  "payment_intent_id": "pi_3P37gnHx6psTCyjy1zLIxRnz",
+  "payment_intent_id": "pi_3P3BPaHx6psTCyjy0OcsvRhR",
   "amount": 100
 }
 
@@ -38,3 +38,11 @@ Content-Type: application/json
 GET https://api.stripe.com/v1/customers/cus_PseNw4MGYqWVuU/payment_methods
 Authorization: Bearer sk_test_51P26yHHx6psTCyjymmZsE8wAAJzezOJV0IlqeoKHBODyCdPwDFGD93k74GJTXhp59D8MFNGipsKJjqyCzEZaWTPA000waYUiIE
 Content-Type: application/json
+
+
+### Create payment intent
+POST https://api.stripe.com/v1/payment_intents
+Authorization: Bearer sk_test_51P26yHHx6psTCyjymmZsE8wAAJzezOJV0IlqeoKHBODyCdPwDFGD93k74GJTXhp59D8MFNGipsKJjqyCzEZaWTPA000waYUiIE
+Content-Type: application/x-www-form-urlencoded
+
+amount=100&currency=usd

@@ -151,7 +151,12 @@ app.post("/schedule-lesson", async (req, res) => {
       metadata: {
         type: "lessons-payment",
       },
-      payment_method: customerPaymentMethods.data[0].id,
+      confirm: true,
+      payment_method: customerPaymentMethods.data.pop().id,
+      automatic_payment_methods: {
+        enabled: true, // Enable automatic payment methods
+        allow_redirects: "never", // Don't allow redirects
+      },
     });
 
     return res.status(201).send({payment: paymentIntent});
@@ -199,7 +204,7 @@ app.post("/complete-lesson-payment", async (req, res) => {
       options = {amount_to_capture: amount}
     }
 
-    let paymentIntent = stripe.paymentIntents.capture(payment_intent_id,  options);
+    let paymentIntent = await stripe.paymentIntents.capture(payment_intent_id,  options);
 
     return res.status(200).send({payment: paymentIntent});
   } catch (error) {
