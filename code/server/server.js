@@ -280,7 +280,21 @@ app.get("/account-update/:customer_id", async (req, res) => {
 });
 
 app.get("/payment-method/:customer_id", async (req, res) => {
-  // TODO: Retrieve the customer's payment method for the client
+  const {customer_id} = req.params;
+
+  try {
+
+    const paymentMethods = await stripe.customers.listPaymentMethods(customer_id);
+
+    return res.status(200).send({paymentMethods: paymentMethods.data});
+  } catch (error) {
+    return res.status(400).send({
+      error: {
+        code: error.code,
+        message: error.message
+      }
+    });
+  }
 });
 
 
@@ -322,7 +336,31 @@ app.post("/account-update", async (req, res) => {
 //  }
 //
 app.post("/delete-account/:customer_id", async (req, res) => {
-  // TODO: Integrate Stripe
+  const {customer_id} = req.params;
+
+  try {
+    const paymentIntents = await stripe.paymentIntents.list({
+      customer: customer_id,
+      status: "requires_capture",
+    });
+
+    if (paymentIntents.data.length > 0) {
+      return res.status(400).send({
+        uncaptured_payments: paymentIntents.data.map(pi => pi.id)
+      });
+    }
+
+    await stripe.customers.del(customer_id);
+
+    return res.status(200).send({deleted: true});
+  } catch (error) {
+    return res.status(400).send({
+      error: {
+        code: error.code,
+        message: error.message
+      }
+    });
+  }
 });
 
 
