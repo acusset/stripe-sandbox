@@ -308,7 +308,34 @@ app.post("/update-payment-details/:customer_id", async (req, res) => {
 
 // Handle account updates
 app.post("/account-update", async (req, res) => {
+  const {email, name} = req.body;
+  const {customer_id} = req.query;
+
   // TODO: Handle updates to any of the customer's account details
+  try {
+    let customer = await stripe.customer.list({
+      email: email
+    });
+
+    // new email already belongs to another customer
+    if (customer.id !== customer_id) {
+      throw new Error("Email is taken"); // caught below
+    }
+
+    customer = await stripe.customers.update(customer_id, {
+      email: email,
+      name: name
+    });
+
+    return res.status(200).send({customer: customer});
+  } catch (error) {
+    return res.status(400).send({
+      error: {
+        code: error.code ?? 400,
+        message: error.message
+      }
+    });
+  }
 });
 
 // Milestone 3: '/delete-account'
