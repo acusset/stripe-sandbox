@@ -46,3 +46,10 @@ Authorization: Bearer sk_test_51P26yHHx6psTCyjymmZsE8wAAJzezOJV0IlqeoKHBODyCdPwD
 Content-Type: application/x-www-form-urlencoded
 
 amount=100&currency=usd
+
+### FAILED PAYMENTS
+GET https://api.stripe.com/v1/payment_intents
+Authorization: Bearer sk_test_51P26yHHx6psTCyjymmZsE8wAAJzezOJV0IlqeoKHBODyCdPwDFGD93k74GJTXhp59D8MFNGipsKJjqyCzEZaWTPA000waYUiIE
+Content-Type: application/x-www-form-urlencoded
+
+query="status=\"require_payment_method\"

@@ -20,28 +20,23 @@ const AccountUpdate = ({ id }) => {
   }, [id]);
 
   const onSuccessfulConfirmation = async (customerId) => {
+    console.log('onSuccessfulConfirmation');
     const result = await accountUpdate(id);
+    console.log(result);
     if (result !== null) {
       setData(result);
     }
   };
 
-  if (!data.customer) {
-    return (
-      <main className="main-lessons">
-        <Header/>
-        <div className="eco-items" id="account-information">
-          <h3>Account not found!</h3>
-        </div>
-      </main>
-    )
-  }
-
   return (
     <main className="main-lessons">
       <Header />
+      {data.customer ? (
         <div>
           <div className="eco-items" id="account-information">
+            {
+              //User's info shoul be display here
+            }
             <h3>Account Details</h3>
             <h4>Current Account information</h4>
             <h5>We have the following card information on file for you: </h5>
@@ -69,6 +64,11 @@ const AccountUpdate = ({ id }) => {
             onSuccessfulConfirmation={onSuccessfulConfirmation}
           />
         </div>
+      ) : (
+        <div className="eco-items" id="account-information">
+          <h3>Account not found!</h3>
+        </div>
+      )}
     </main>
   );
 };

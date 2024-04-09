@@ -283,12 +283,12 @@ app.get("/payment-method/:customer_id", async (req, res) => {
   const {customer_id} = req.params;
 
   try {
-    const customer = await stripe.paymentMethods.list({
+    const customers = await stripe.paymentMethods.list({
       customer: customer_id,
       expand: ['data.customer'],
     });
 
-    return res.status(200).send(customer.data.pop());
+    return res.status(200).send(customers.data.pop());
   } catch (error) {
     return res.status(400).send({
       error: {
@@ -303,17 +303,21 @@ app.get("/payment-method/:customer_id", async (req, res) => {
 app.post("/update-payment-details/:customer_id", async (req, res) => {
   const {customer_id} = req.params;
   const {payment_method} = req.body
+  const promises = [];
 
   try {
     const customerPaymentMethods = await stripe.customers.listPaymentMethods(customer_id);
 
     // Detach old payment methods
-    customerPaymentMethods.data.forEach(async (paymentMethod) => {
+    customerPaymentMethods.data.forEach((paymentMethod, index) => {
       if (paymentMethod.id !== payment_method) {
-        await stripe.paymentMethods.detach(paymentMethod.id);
+        promises[index] = stripe.paymentMethods.detach(paymentMethod.id);
       }
     });
 
+    await Promise.all(promises);
+
+    res.sendStatus(200);
   } catch (error) {
     return res.status(400).send({
       error: {
@@ -337,7 +341,7 @@ app.post("/account-update/:customer_id", async (req, res) => {
     });
 
     if (existingCustomers.data.length > 0 && existingCustomers.data[0].id !== customer_id) {
-      throw new Error("Email is taken"); // caught below
+      throw new Error('Customer email already exists!'); // caught below
     }
 
     // Update customer details
@@ -359,7 +363,7 @@ app.post("/account-update/:customer_id", async (req, res) => {
   } catch (error) {
     return res.status(400).send({
       error: {
-        code: error.code,
+        code: error.code ?? 400,
         message: error.message
       }
     });
@@ -478,7 +482,22 @@ app.get("/calculate-lesson-total", async (req, res) => {
 //   {},
 // ]
 app.get("/find-customers-with-failed-payments", async (req, res) => {
-  // TODO: Integrate Stripe
+  const thirtySixHoursAgo = Math.floor(Date.now() / 1000 - 36 * 60 * 60);
+
+  try {
+    const customersWithFailedPayments = await stripe.paymentIntents.search({
+      query: `created>=${thirtySixHoursAgo} AND status:"requires_payment_method"`,
+    })
+
+
+  } catch (error) {
+    return res.status(400).send({
+      error: {
+        code: error.code,
+        message: error.message
+      }
+    });
+  }
 });
 
 function errorHandler(err, req, res, next) {

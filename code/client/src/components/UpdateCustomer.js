@@ -41,8 +41,8 @@ const UpdateCustomer = ({
   const handleClick = async () => {
     setProcessing(true);
 
-    const updateAccount = () => {
-      fetch(`http://localhost:4242/account-update/${customerId}`, {
+    const updateAccount = async () => {
+      const data = await fetch(`http://localhost:4242/account-update/${customerId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -51,25 +51,24 @@ const UpdateCustomer = ({
           email: email,
           name: name
         })
-      })
-        .then(response => response.json())
-        .then(data => {
-          if (data.error) {
-            setError(data.error);
-          }
-          onSuccessfulConfirmation(); // refresh the users details
-          setStripeOptions({
-            clientSecret: data.clientSecret,
-            appearance: {
-              theme: 'dark',
-            }
-          })
+      }).then(response => response.json());
 
-          setpaymentElementLoaded(true);
-        })
-        .finally(() => {
-          setProcessing(false);
-        });
+      if (data.error) {
+        setError(data.error.message);
+        setProcessing(false);
+        return;
+      }
+
+      onSuccessfulConfirmation(); // refresh the users details
+      setStripeOptions({
+        clientSecret: data.clientSecret,
+        appearance: {
+          theme: 'dark',
+        }
+      })
+
+      setpaymentElementLoaded(true);
+      setProcessing(false);
     }
 
     updateAccount();
