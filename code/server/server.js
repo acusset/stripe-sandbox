@@ -445,7 +445,40 @@ app.post("/delete-account/:customer_id", async (req, res) => {
 // }
 //
 app.get("/calculate-lesson-total", async (req, res) => {
-  // TODO: Integrate Stripe
+  const thirtySixHoursAgo = Math.floor(Date.now() / 1000 - 36 * 60 * 60);
+  let data = {
+    payment_total: 0,
+    fee_total: 0,
+    net_total: 0,
+  }
+
+  try {
+    const charges = await stripe.charges.list({
+      created: {
+        gte: thirtySixHoursAgo,
+      },
+      currency: 'usd'
+    });
+
+    charges.data.reduce((accumulator, charge) => {
+      const {amount_captured, amount_refunded, application_fee_amount} = charge;
+
+      return {
+        payment_total: accumulator.payment_total + amount_captured,
+        fee_total: accumulator.fee_total + application_fee_amount,
+        net_total: accumulator.payment_total + amount_captured - amount_refunded - application_fee_amount,
+      }
+    }, data)
+
+    return res.status(200).send(data);
+  } catch (error) {
+    return res.status(400).send({
+      error: {
+        code: error.code,
+        message: error.message
+      }
+    });
+  }
 });
 
 

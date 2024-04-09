@@ -53,3 +53,6 @@ Authorization: Bearer sk_test_51P26yHHx6psTCyjymmZsE8wAAJzezOJV0IlqeoKHBODyCdPwD
 Content-Type: application/x-www-form-urlencoded
 
 query="status=\"require_payment_method\"
+
+### Finances
+GET localhost:3000/calculate-lesson-total
