@@ -464,8 +464,8 @@ app.get("/calculate-lesson-total", async (req, res) => {
 
     result = charges.data
       .filter(charge => {
-        return charge.status === 'succeeded' && charge.metadata.type === 'lessons-payment';
-      }).reduce((accumulator, charge) => {
+        return charge.status === 'succeeded' && charge.metadata.type === 'lessons-payment' && charge.balance_transaction;
+      }).reduce((accumulator, charge, currentIndex) => {
       const {amount, fee, net} = charge.balance_transaction;
 
       return {
@@ -531,7 +531,7 @@ app.get("/find-customers-with-failed-payments", async (req, res) => {
       query: `created>=${thirtySixHoursAgo} AND status:"requires_payment_method"`,
     })
 
-
+    return res.status(200).send({})
   } catch (error) {
     return res.status(400).send({
       error: {
