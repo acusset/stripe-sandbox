@@ -466,18 +466,18 @@ app.get("/calculate-lesson-total", async (req, res) => {
       .filter(charge => {
         return charge.status === 'succeeded' && charge.metadata.type === 'lessons-payment' && charge.balance_transaction;
       }).reduce((accumulator, charge, currentIndex) => {
-      const {amount, fee, net} = charge.balance_transaction;
+        const {amount, fee, net} = charge.balance_transaction;
 
-      return {
-        payment_total: accumulator.payment_total + amount,
-        fee_total: accumulator.fee_total + fee,
-        net_total: accumulator.net_total + net,
-      }
-    }, {
-      payment_total: 0,
-      fee_total: 0,
-      net_total: 0,
-    });
+        return {
+          payment_total: accumulator.payment_total + amount,
+          fee_total: accumulator.fee_total + fee,
+          net_total: accumulator.net_total + net,
+        }
+      }, {
+        payment_total: 0,
+        fee_total: 0,
+        net_total: 0,
+      });
 
     return res.status(200).send(result);
   } catch (error) {
@@ -527,11 +527,49 @@ app.get("/find-customers-with-failed-payments", async (req, res) => {
   const thirtySixHoursAgo = Math.floor(Date.now() / 1000 - 36 * 60 * 60);
 
   try {
-    const customersWithFailedPayments = await stripe.paymentIntents.search({
-      query: `created>=${thirtySixHoursAgo} AND status:"requires_payment_method"`,
+    const failedPayments = await stripe.paymentIntents.list({
+      created: {
+        gte: thirtySixHoursAgo
+      },
+      limit: 500,
+      expand: ['data.last_payment_error', 'data.customer']
     })
 
-    return res.status(200).send({})
+    const customersWithFailedPayments = failedPayments.data
+      .filter(failedPayments => {
+        return failedPayments.status === 'requires_payment_method' && failedPayments.customer;
+      })
+      .map(async (paymentIntent) => {
+        const {
+          customer, description, created, status, last_payment_error: {
+            decline_code, payment_method: {
+              card: {
+                last4, brand
+              }
+            }
+          }
+        } = paymentIntent;
+
+      return {
+        customer: {
+          id: customer.id,
+          email: customer.email,
+          name: customer.name,
+        },
+        payment_intent: {
+          created: created,
+          description: description,
+          status: 'failed',
+          error: decline_code,
+        },
+        payment_method: {
+          last4: last4,
+          brand: brand
+        }
+      }
+    });
+
+    return res.status(200).send(customersWithFailedPayments)
   } catch (error) {
     return res.status(400).send({
       error: {
