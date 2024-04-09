@@ -537,9 +537,9 @@ app.get("/find-customers-with-failed-payments", async (req, res) => {
 
     const customersWithFailedPayments = failedPayments.data
       .filter(failedPayments => {
-        return failedPayments.status === 'requires_payment_method' && failedPayments.customer;
+        return failedPayments.status === 'requires_payment_method' && failedPayments.customer && failedPayments.last_payment_error;
       })
-      .map(async (paymentIntent) => {
+      .map((paymentIntent) => {
         const {
           customer, description, created, status, last_payment_error: {
             decline_code, payment_method: {
