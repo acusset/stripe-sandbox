@@ -2,12 +2,12 @@
 const express = require('express');
 
 const app = express();
-const { resolve } = require('path');
+const {resolve} = require('path');
 // Replace if using a different env file or config
-require('dotenv').config({ path: './.env' });
+require('dotenv').config({path: './.env'});
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const cors = require('cors');
-const { v4: uuidv4 } = require('uuid');
+const {v4: uuidv4} = require('uuid');
 
 const allitems = {};
 const fs = require('fs');
@@ -27,7 +27,7 @@ app.use(
     },
   ),
 );
-app.use(cors({ origin: true }));
+app.use(cors({origin: true}));
 
 // const asyncMiddleware = fn => (req, res, next) => {
 //   Promise.resolve(fn(req, res, next)).catch(next);
@@ -80,7 +80,7 @@ app.get('/lessons', (req, res) => {
 app.post("/lessons", async (req, res) => {
   const {email, name, firstLesson} = req.body;
   let customer = null
-  let isExistingCustomer =  false;
+  let isExistingCustomer = false;
   let search = await stripe.customers.list({
     email: email
   });
@@ -205,7 +205,7 @@ app.post("/complete-lesson-payment", async (req, res) => {
       options = {amount_to_capture: amount}
     }
 
-    let paymentIntent = await stripe.paymentIntents.capture(payment_intent_id,  options);
+    let paymentIntent = await stripe.paymentIntents.capture(payment_intent_id, options);
 
     return res.status(200).send({payment: paymentIntent});
   } catch (error) {
@@ -446,31 +446,35 @@ app.post("/delete-account/:customer_id", async (req, res) => {
 //
 app.get("/calculate-lesson-total", async (req, res) => {
   const thirtySixHoursAgo = Math.floor(Date.now() / 1000 - 36 * 60 * 60);
-  let data = {
-    payment_total: 0,
-    fee_total: 0,
-    net_total: 0,
-  }
+  let result;
 
   try {
-    const charges = await stripe.charges.list({
+    const transactions = await stripe.balanceTransactions.list({
       created: {
         gte: thirtySixHoursAgo,
       },
+      limit: 500,
       currency: 'usd'
     });
 
-    charges.data.reduce((accumulator, charge) => {
-      const {amount_captured, amount_refunded, application_fee_amount} = charge;
+    result = transactions.data
+      .filter(charges => {
+        return true;
+      }).reduce((accumulator, charge) => {
+      const {amount, fee, net} = charge;
 
       return {
-        payment_total: accumulator.payment_total + amount_captured,
-        fee_total: accumulator.fee_total + application_fee_amount,
-        net_total: accumulator.payment_total + amount_captured - amount_refunded - application_fee_amount,
+        payment_total: accumulator.payment_total + amount,
+        fee_total: accumulator.fee_total + fee,
+        net_total: accumulator.net_total + net,
       }
-    }, data)
+    }, {
+      payment_total: 0,
+      fee_total: 0,
+      net_total: 0,
+    });
 
-    return res.status(200).send(data);
+    return res.status(200).send(result);
   } catch (error) {
     return res.status(400).send({
       error: {
@@ -534,7 +538,7 @@ app.get("/find-customers-with-failed-payments", async (req, res) => {
 });
 
 function errorHandler(err, req, res, next) {
-  res.status(500).send({ error: { message: err.message } });
+  res.status(500).send({error: {message: err.message}});
 }
 
 app.use(errorHandler);

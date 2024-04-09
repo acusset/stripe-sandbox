@@ -56,3 +56,8 @@ query="status=\"require_payment_method\"
 
 ### Finances
 GET localhost:3000/calculate-lesson-total
+
+### Accounts
+GET https://api.stripe.com/v1/accounts
+Authorization: Bearer sk_test_51P26yHHx6psTCyjymmZsE8wAAJzezOJV0IlqeoKHBODyCdPwDFGD93k74GJTXhp59D8MFNGipsKJjqyCzEZaWTPA000waYUiIE
+Content-Type: application/x-www-form-urlencoded
